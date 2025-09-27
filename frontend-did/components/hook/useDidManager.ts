@@ -12,7 +12,7 @@ interface UseDidManagerProps {
 // https://sdk.mystenlabs.com/typescript/transaction-building/basics#pure-valuess
 function formatArg(tx: Transaction, arg: any): TransactionArgument {
   // Null / undefined → Option::None
-  if (arg === null || arg === undefined) return tx.pure(null);
+  if (arg === null || arg === undefined) return tx.pure([]);;
 
   // Object id → object reference
   if (typeof arg === 'string' && arg.startsWith('0x') && arg.length >= 66) {
