@@ -1,6 +1,20 @@
 import { useState } from 'react';
-import { Transaction, TransactionArgument } from '@mysten/sui/transactions';
+import { Transaction } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { bcs } from '@mysten/bcs';
+
+interface AuthenticationMethod {
+  id: string;
+  atype: string;
+  controller: string; // Sui address
+  publicKeyMultibase: string;
+}
+
+interface ServiceEndpoint {
+  id: string;
+  type: string;
+  url: string;
+}
 
 interface UseDidManagerProps {
   packageId: string;
@@ -8,37 +22,45 @@ interface UseDidManagerProps {
   chain?: `${string}:${string}`;
 }
 
-// Helper to format arguments for Sui Move calls
-// https://sdk.mystenlabs.com/typescript/transaction-building/basics#pure-valuess
-function formatArg(tx: Transaction, arg: any): TransactionArgument {
-  // Null / undefined → Option::None
-  if (arg === null || arg === undefined) return tx.pure([]);;
-
-  // Object id → object reference
-  if (typeof arg === 'string' && arg.startsWith('0x') && arg.length >= 66) {
-    return tx.object(arg);
-  }
-
-  // Arrays → recursively map each item
-  if (Array.isArray(arg)) {
-    // flatten nested arrays by encoding each element
-    return tx.pure(arg.map((item) => {
-      const formatted = formatArg(tx, item);
-      // If formatted is array, spread it
-      return Array.isArray(formatted) ? formatted : formatted;
-    }).flat());
-  }
-
-  // Objects → assume already encoded tuple
-  if (typeof arg === 'object') {
-    return tx.pure(arg);
-  }
-
-  // Scalars → pure
-  return tx.pure(arg);
+// -------------------- Encoders --------------------
+function encodeAuthenticationMethod(m: AuthenticationMethod) {
+  return bcs.Tuple([bcs.String, bcs.String, bcs.Address, bcs.String]).serialize([
+    m.id,
+    m.atype,
+    m.controller,
+    m.publicKeyMultibase,
+  ]);
 }
 
-export function useDidManager({ packageId, moduleName, chains }: UseDidManagerProps) {
+function encodeServiceEndpoint(e: ServiceEndpoint) {
+  return bcs.Tuple([bcs.String, bcs.String, bcs.String]).serialize([e.id, e.type, e.url]);
+}
+
+function encodeOptionString(s?: string) {
+  return s === null || s === undefined ? undefined : bcs.String.serialize(s);
+}
+
+function encodeVectorAddress(addrs: string[]) {
+  return bcs.vector(bcs.Address).serialize(addrs);
+}
+
+// -------------------- Argument Formatter --------------------
+function formatArg(tx: Transaction, arg: any): any {
+  if (arg === null || arg === undefined) return undefined; // Option::None
+
+  if (typeof arg === 'string' && arg.startsWith('0x') && arg.length >= 66) {
+    return tx.object(arg); // Object ID
+  }
+
+  if (arg instanceof Uint8Array) return arg; // pre-encoded BCS tuple
+
+  if (Array.isArray(arg)) return arg.map((item) => formatArg(tx, item)); // recursively
+
+  return arg; // already serialized scalar
+}
+
+// -------------------- Hook --------------------
+export function useDidManager({ packageId, moduleName, chain = 'sui:devnet' }: UseDidManagerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
@@ -48,7 +70,6 @@ export function useDidManager({ packageId, moduleName, chains }: UseDidManagerPr
     setError(null);
 
     const tx = new Transaction();
-	// https://sdk.mystenlabs.com/typescript/transaction-building/basics#transactions
     tx.moveCall({
       target: `${packageId}::${moduleName}::${functionName}`,
       arguments: args.map((arg) => formatArg(tx, arg)),
@@ -56,7 +77,6 @@ export function useDidManager({ packageId, moduleName, chains }: UseDidManagerPr
     });
 
     return new Promise((resolve, reject) => {
-	 // https://sdk.mystenlabs.com/dapp-kit/wallet-hooks/useSignAndExecuteTransaction
       signAndExecuteTransaction(
         { transaction: tx, chain },
         {
@@ -77,15 +97,31 @@ export function useDidManager({ packageId, moduleName, chains }: UseDidManagerPr
   return {
     loading,
     error,
-    createDid: (authMethods: any[], controllersDid: string[], endpoints: any[], cid: string | null, clock: any, ctx: any) =>
-      callMoveFunction('create', [authMethods, controllersDid, endpoints, cid, clock, ctx]),
-    addController: (did: any, newController: string, clock: any) =>
-      callMoveFunction('add_controller', [did, newController, clock]),
-    updateCid: (did: any, newCid: string, clock: any) =>
-      callMoveFunction('update_cid', [did, newCid, clock]),
-    revokeDid: (did: any, clock: any) =>
-      callMoveFunction('revoke', [did, clock]),
-    reactivateDid: (did: any, clock: any) =>
-      callMoveFunction('reactivate', [did, clock]),
+    create: (
+      //authMethods: AuthenticationMethod[],
+      controllersDid: string[],
+      //endpoints: ServiceEndpoint[],
+      cid: string | null,
+      clockId: string
+    ) =>
+      callMoveFunction('create', [
+        //authMethods.map(encodeAuthenticationMethod),
+        encodeVectorAddress(controllersDid),
+        //endpoints.map(encodeServiceEndpoint),
+        encodeOptionString(cid),
+        tx.object(clockId),
+      ]),
+
+    addController: (didId: string, newController: string, clockId: string) =>
+      callMoveFunction('add_controller', [tx.object(didId), tx.pure.address(newController), tx.object(clockId)]),
+
+    updateCid: (didId: string, newCid: string, clockId: string) =>
+      callMoveFunction('update_cid', [tx.object(didId), encodeOptionString(newCid), tx.object(clockId)]),
+
+    revoke: (didId: string, clockId: string) =>
+      callMoveFunction('revoke', [tx.object(didId), tx.object(clockId)]),
+
+    reactivate: (didId: string, clockId: string) =>
+      callMoveFunction('reactivate', [tx.object(didId), tx.object(clockId)]),
   };
 }
