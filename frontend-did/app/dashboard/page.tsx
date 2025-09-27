@@ -1,4 +1,4 @@
-import { DIDManagement } from "@/components/DIDManagement";
+import { DIDManagement } from "@/components/ProfileFormPanel";
 import { Header } from "@/components/Header";
 
 export default function DashboardPage() {

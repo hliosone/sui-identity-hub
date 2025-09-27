@@ -638,7 +638,7 @@ export function CredentialsIssuance() {
                     Issuer DiD
                   </Label>
                   <div className="p-3 sui-bg-light rounded-lg mt-1 group cursor-pointer" onClick={() => navigator.clipboard.writeText(primaryWallet.address || '')} title="Click to copy">
-                    <div className="font-mono text-sm break-all text-slate-700">{user ? user.userId : 'Not specified'}</div>
+                    <div className="font-mono text-sm break-all text-slate-700">{user ? `did:sui:${primaryWallet.address}` : 'Not connected'}</div>
                     <Copy className="h-3 w-3 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity mt-1" />
                   </div>
                 </div>
