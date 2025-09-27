@@ -8,7 +8,7 @@ interface SNSLogoProps {
 export function SNSLogo({ size = 24, className = '' }: SNSLogoProps) {
     return (
         <img 
-        src="/sns-logo.png" 
+        src="/sns_logo.png" 
         alt="SUI Name Service" 
         width={size} 
         height={size}

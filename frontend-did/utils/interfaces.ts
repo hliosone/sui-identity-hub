@@ -9,3 +9,8 @@ export interface DIDObject {
         suiNameServiceDomain?: string;
     };
 }
+
+export interface CredentialsIssuanceProps {
+    userDID: DIDObject | null;
+    onBack: () => void;
+}
