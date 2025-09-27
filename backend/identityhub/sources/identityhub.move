@@ -50,8 +50,8 @@ module identityhub::did {
         // credentials (DynamicFieldTable) (on-chain attached credentials using DynamicFieldTable)
     }
 
-    public fun create(ctx: &mut TxContext, auth_methods: vector<AuthenticationMethod>, 
-    controllers_did: vector<address>, endpoints: vector<ServiceEndpoint>,  _cid: option::Option<String>, clock: &Clock) : DID {
+    public fun create(auth_methods: vector<AuthenticationMethod>, controllers_did: vector<address>, endpoints: vector<ServiceEndpoint>,  
+    _cid: option::Option<String>, clock: &Clock, ctx: &mut TxContext) : DID {
 
         assert!(vector::length(&controllers_did) > 0, EDIDNoController);
 
