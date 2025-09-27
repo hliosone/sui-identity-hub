@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import {
-  ArrowLeft, Waves, Edit, Save,
+    ArrowLeft, Waves, Edit, Save,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { SNSLogo } from "./icons/SNSLogo";
+import { SNSLogo } from "./icons/SNSLogo";      // ✅ make sure sns-logo.png exists in /public or fix this component
 import { useRouter } from "next/navigation";
 import {
     useUserUpdateRequest,
@@ -17,9 +17,8 @@ import {
 
 export function DIDManagement() {
     const router = useRouter();
-    const { user } = useDynamicContext();                     // ✅ current Dynamic user
-    const primaryWallet = useDynamicContext();       // ✅ check primary wallet
-    const { updateUser } = useUserUpdateRequest();  // ✅ update profile
+    const { user, primaryWallet } = useDynamicContext();  // ✅ correct destructure
+    const { updateUser } = useUserUpdateRequest();
 
     const [isEditing, setIsEditing] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -31,27 +30,26 @@ export function DIDManagement() {
         suiNameServiceDomain: user?.username || "",
     });
 
-    // 🔎 Simulated username availability check
+    // ✅ Dynamic API allows 3–20 chars: letters, numbers, underscore, dash
     const checkUsernameAvailability = async (username: string): Promise<"available" | "taken" | "invalid"> => {
         await new Promise((r) => setTimeout(r, 800));
-        if (!username || username.length < 4 || !/^@[a-z0-9_]+$/i.test(username)) return "invalid";
-        const taken = ["@john", "@admin", "@test", "@user", "@demo", "@sui"];
+        if (!username || username.length < 3 || username.length > 20 || !/^[a-z0-9_-]+$/i.test(username)) return "invalid";
+        const taken = ["john", "admin", "test", "user", "demo", "sui"];
         return taken.includes(username.toLowerCase()) ? "taken" : "available";
     };
 
     const generateUsernameSuggestions = (nickname: string): string[] => {
         if (!nickname) return [];
-        const clean = nickname.toLowerCase().replace(/[^a-z0-9]/g, "");
+        const clean = nickname.toLowerCase().replace(/[^a-z0-9_-]/g, "");
         return [
-        `@${clean}`,
-        `@${clean}${Math.floor(Math.random() * 100)}`,
-        `@sui_${clean}`,
+        `${clean}`,
+        `${clean}${Math.floor(Math.random() * 100)}`,
+        `sui_${clean}`,
         ];
     };
 
     const formatUsername = (input: string): string => {
-        const clean = input.toLowerCase().replace(/[^a-z0-9_]/g, "");
-        return clean ? (clean.startsWith("@") ? clean : `@${clean}`) : "";
+        return input.toLowerCase().replace(/[^a-z0-9_-]/g, "");
     };
 
     // Suggest usernames when nickname changes
@@ -94,7 +92,7 @@ export function DIDManagement() {
         return;
         }
         if (domainStatus === "invalid") {
-        alert("Please enter a valid username format before saving.");
+        alert("Please enter a valid username (3–20 letters, numbers, _ or -).");
         return;
         }
         if (!primaryWallet) {
@@ -108,10 +106,10 @@ export function DIDManagement() {
             username: formData.suiNameServiceDomain,
         });
         setIsEditing(false);
-        alert("Username updated successfully in Dynamic!");
+        console.log("Username updated successfully in Dynamic!");
         } catch (err) {
         console.error("Dynamic update failed:", err);
-        alert("Failed to update profile. Please try again.");
+        console.log("Failed to update profile. Please try again.");
         } finally {
         setIsSaving(false);
         }
@@ -134,20 +132,31 @@ export function DIDManagement() {
         <div className="max-w-2xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center gap-4">
-            {user && (
-                <Button variant="ghost" onClick={() => router.push("/dashboard")}>
+            {primaryWallet && (
+                <Button
+                variant="ghost"
+                onClick={() => router.back()}
+                className="sui-border hover:sui-bg-light"
+                >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+                <span className="hidden sm:inline">Back to Dashboard</span>
                 </Button>
             )}
-            <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 bg-blue-600 rounded-lg">
-                <Waves className="h-5 w-5 md:h-6 md:w-6 text-white" />
+            <div className="flex-1">
+                <h1 className="text-2xl md:text-3xl font-bold flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 sui-gradient rounded-lg">
+                    <Waves className="h-5 w-5 md:h-6 md:w-6 text-white" />
                 </div>
                 <span className="bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
-                Manage Dynamic Username
+                    {primaryWallet ? "SUI DiD Passport" : "Create SUI DiD"}
                 </span>
-            </h1>
+                </h1>
+                <p className="text-slate-600 mt-2 text-sm md:text-base">
+                {primaryWallet
+                    ? "Your official decentralized identity passport on Sui Network"
+                    : "Create your decentralized identity passport to get started on Sui Network"}
+                </p>
+            </div>
             </div>
 
             {/* Profile Form */}
@@ -185,15 +194,15 @@ export function DIDManagement() {
                     value={formData.suiNameServiceDomain}
                     onChange={(e) => setFormData((p) => ({ ...p, suiNameServiceDomain: e.target.value }))}
                     disabled={!isEditing}
-                    placeholder="@yourname"
+                    placeholder="yourname"   // ✅ removed '@'
                     className={
                     domainStatus === "available"
                         ? "border-green-300 bg-green-50"
                         : domainStatus === "taken"
                         ? "border-red-300 bg-red-50"
                         : domainStatus === "invalid"
-                        ? "border-orange-300 bg-orange-50"
-                        : ""
+                            ? "border-orange-300 bg-orange-50"
+                            : ""
                     }
                 />
                 {domainStatus && (
@@ -202,13 +211,13 @@ export function DIDManagement() {
                         domainStatus === "available"
                         ? "text-green-600"
                         : domainStatus === "taken"
-                        ? "text-red-600"
-                        : "text-orange-600"
+                            ? "text-red-600"
+                            : "text-orange-600"
                     }`}
                     >
                     {domainStatus === "available" && "Username is available!"}
                     {domainStatus === "taken" && "Username is already taken"}
-                    {domainStatus === "invalid" && "Invalid username format"}
+                    {domainStatus === "invalid" && "Invalid username format (3–20 letters, numbers, _ or -)"}
                     </p>
                 )}
                 {isEditing && suggestedDomains.length > 0 && domainStatus !== "available" && (
