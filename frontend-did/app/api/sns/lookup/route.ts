@@ -1,4 +1,4 @@
-// app/api/resolve-suins/route.ts
+// app/api/sns/lookup/route.ts
 
 import { NextRequest } from "next/server";
 
