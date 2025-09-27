@@ -1,6 +1,7 @@
+"use client";
+
 import {
     DynamicContextProvider,
-    // DynamicWidget,
 } from "@dynamic-labs/sdk-react-core";
 
 import { SuiWalletConnectors } from "@dynamic-labs/sui";
@@ -70,10 +71,15 @@ export default function DynamicWalletProviderWrapper({ children }: Readonly<{ ch
         
     return (
         <DynamicContextProvider
-        settings={{
-            environmentId: "29b1dd48-4f22-4355-a2b7-608d65f63d62",
-            walletConnectors: [SuiWalletConnectors],
-        }}
+            settings={{
+                environmentId: "29b1dd48-4f22-4355-a2b7-608d65f63d62",
+                walletConnectors: [SuiWalletConnectors],
+                events: {
+                    onAuthSuccess: (args) => {
+                        window.location.href = "/dashboard";
+                    },
+                },
+            }}
         >
         {/* <DynamicWidget /> */}
         {children}
