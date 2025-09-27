@@ -4,8 +4,18 @@ import { CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { SuiLogoIcon } from './icons/SuiLogoIcon';
 import { DynamicWidget } from '@dynamic-labs/sdk-react-core';
+import { useEffect } from 'react';
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { useRouter } from 'next/navigation';
 
 export function LoginPage() {
+    const router = useRouter();
+    const { user, primaryWallet } = useDynamicContext();
+
+    useEffect(() => {
+        router.push(user && primaryWallet ? '/dashboard' : '/');
+    }, [user, primaryWallet]);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-cyan-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
