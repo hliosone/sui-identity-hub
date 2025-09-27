@@ -9,26 +9,32 @@ interface UseDidManagerProps {
 }
 
 // Helper to format arguments for Sui Move calls
-// https://sdk.mystenlabs.com/typescript/transaction-building/basics#pure-values
-function formatArg(tx: Transaction, arg: any): TransactionArgument | TransactionArgument[] {
-  // If it's an object id (string of 66 chars, starts with '0x'), treat as object
+// https://sdk.mystenlabs.com/typescript/transaction-building/basics#pure-valuess
+function formatArg(tx: Transaction, arg: any): TransactionArgument {
+  // Null / undefined → Option::None
+  if (arg === null || arg === undefined) return tx.pure(null);
+
+  // Object id → object reference
   if (typeof arg === 'string' && arg.startsWith('0x') && arg.length >= 66) {
     return tx.object(arg);
   }
-  // If it's a vector, recursively format
+
+  // Arrays → recursively map each item
   if (Array.isArray(arg)) {
-    return arg.map((item) => formatArg(tx, item));
+    // flatten nested arrays by encoding each element
+    return tx.pure(arg.map((item) => {
+      const formatted = formatArg(tx, item);
+      // If formatted is array, spread it
+      return Array.isArray(formatted) ? formatted : formatted;
+    }).flat());
   }
-  
-  if (typeof arg === 'object' && arg !== null && !Array.isArray(arg)) {
-    return tx.pure(Object.values(arg));
+
+  // Objects → assume already encoded tuple
+  if (typeof arg === 'object') {
+    return tx.pure(arg);
   }
-  
-  // For option::Option<T>, pass as null or value
-  if (arg === null || arg === undefined) {
-    return tx.pure(null);
-  }
-  // For everything else, treat as pure
+
+  // Scalars → pure
   return tx.pure(arg);
 }
 
