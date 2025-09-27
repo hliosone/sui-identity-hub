@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-import { bcs } from '@mysten/bcs';
+import { bcs, BcsType } from '@mysten/bcs';
 
 interface AuthenticationMethod {
   id: string;
@@ -22,41 +22,45 @@ interface UseDidManagerProps {
   chain?: `${string}:${string}`;
 }
 
-// -------------------- Encoders --------------------
-function encodeAuthenticationMethod(m: AuthenticationMethod) {
-  return bcs.Tuple([bcs.String, bcs.String, bcs.Address, bcs.String]).serialize([
-    m.id,
-    m.atype,
-    m.controller,
-    m.publicKeyMultibase,
-  ]);
+// -------------------- BCS Encoders --------------------
+
+// Encode AuthenticationMethod as a BCS struct
+const AuthenticationMethodBCS = bcs.struct('AuthenticationMethod', {
+  id: bcs.string(),
+  atype: bcs.string(),
+  controller: bcs.Address,
+  publicKeyMultibase: bcs.string(),
+});
+
+// Encode ServiceEndpoint as a BCS struct
+const ServiceEndpointBCS = bcs.struct('ServiceEndpoint', {
+  id: bcs.string(),
+  type: bcs.string(),
+  url: bcs.string(),
+});
+
+// Encode optional string (Option<String>)
+function encodeOptionString(s?: string | null): Uint8Array | undefined {
+  return bcs.option(bcs.string()).serialize(s ?? null).toBytes();
 }
 
-function encodeServiceEndpoint(e: ServiceEndpoint) {
-  return bcs.Tuple([bcs.String, bcs.String, bcs.String]).serialize([e.id, e.type, e.url]);
+// Encode vector of addresses
+function encodeVectorAddress(addrs: string[]): Uint8Array {
+  return bcs.vector(bcs.Address).serialize(addrs).toBytes();
 }
 
-function encodeOptionString(s?: string) {
-  return s === null || s === undefined ? undefined : bcs.String.serialize(s);
-}
-
-function encodeVectorAddress(addrs: string[]) {
-  return bcs.vector(bcs.Address).serialize(addrs);
+// Encode arrays of structs
+function encodeStructArray<T>(arr: T[], structType: BcsType<T>): Uint8Array[] {
+  return arr.map((item) => structType.serialize(item).toBytes());
 }
 
 // -------------------- Argument Formatter --------------------
 function formatArg(tx: Transaction, arg: any): any {
   if (arg === null || arg === undefined) return undefined; // Option::None
-
-  if (typeof arg === 'string' && arg.startsWith('0x') && arg.length >= 66) {
-    return tx.object(arg); // Object ID
-  }
-
-  if (arg instanceof Uint8Array) return arg; // pre-encoded BCS tuple
-
-  if (Array.isArray(arg)) return arg.map((item) => formatArg(tx, item)); // recursively
-
-  return arg; // already serialized scalar
+  if (typeof arg === 'string' && arg.startsWith('0x') && arg.length >= 66) return tx.object(arg);
+  if (arg instanceof Uint8Array) return tx.pure(arg);
+  if (Array.isArray(arg)) return arg.map((item) => formatArg(tx, item));
+  return arg;
 }
 
 // -------------------- Hook --------------------
@@ -97,6 +101,8 @@ export function useDidManager({ packageId, moduleName, chain = 'sui:devnet' }: U
   return {
     loading,
     error,
+
+    // -------------------- Move calls --------------------
     create: (
       //authMethods: AuthenticationMethod[],
       controllersDid: string[],
@@ -105,9 +111,9 @@ export function useDidManager({ packageId, moduleName, chain = 'sui:devnet' }: U
       clockId: string
     ) =>
       callMoveFunction('create', [
-        //authMethods.map(encodeAuthenticationMethod),
+        //encodeStructArray(authMethods, AuthenticationMethodBCS),
         encodeVectorAddress(controllersDid),
-        //endpoints.map(encodeServiceEndpoint),
+        //encodeStructArray(endpoints, ServiceEndpointBCS),
         encodeOptionString(cid),
         tx.object(clockId),
       ]),

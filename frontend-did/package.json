@@ -10,6 +10,7 @@
   "dependencies": {
     "@dynamic-labs/sdk-react-core": "^4.33.0",
     "@dynamic-labs/sui": "^4.33.0",
+    "@mysten/bcs": "^1.8.0",
     "@mysten/dapp-kit": "^0.18.0",
     "@mysten/sui": "^1.38.0",
     "@radix-ui/react-collapsible": "^1.1.12",

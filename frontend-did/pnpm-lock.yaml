@@ -14,6 +14,9 @@ importers:
       '@dynamic-labs/sui':
         specifier: ^4.33.0
         version: 4.33.0(bufferutil@4.0.9)(fastestsmallesttextencoderdecoder@1.0.22)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)(viem@2.37.8(bufferutil@4.0.9)(typescript@5.9.2)(utf-8-validate@5.0.10)(zod@4.0.5))
+      '@mysten/bcs':
+        specifier: ^1.8.0
+        version: 1.8.0
       '@mysten/dapp-kit':
         specifier: ^0.18.0
         version: 0.18.0(@tanstack/react-query@5.90.2(react@19.1.0))(@types/react-dom@19.1.9(@types/react@19.1.14))(@types/react@19.1.14)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(typescript@5.9.2)
