@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-import { bcs, BcsType } from '@mysten/bcs';
+import { bcs, BcsType, fromHex, toHex } from '@mysten/bcs';
 
 interface AuthenticationMethod {
   id: string;
   atype: string;
-  controller: string; // Sui address
+  controller: string; // Sui address as hex string
   publicKeyMultibase: string;
 }
 
@@ -24,11 +24,17 @@ interface UseDidManagerProps {
 
 // -------------------- BCS Encoders --------------------
 
+// Transform for Sui addresses (hex string <-> 32-byte array)
+const Address = bcs.bytes(32).transform({
+  input: (val: string) => fromHex(val),
+  output: (val: Uint8Array) => toHex(val),
+});
+
 // Encode AuthenticationMethod as a BCS struct
 const AuthenticationMethodBCS = bcs.struct('AuthenticationMethod', {
   id: bcs.string(),
   atype: bcs.string(),
-  controller: bcs.Address,
+  controller: Address,
   publicKeyMultibase: bcs.string(),
 });
 
@@ -46,7 +52,7 @@ function encodeOptionString(s?: string | null): Uint8Array | undefined {
 
 // Encode vector of addresses
 function encodeVectorAddress(addrs: string[]): Uint8Array {
-  return bcs.vector(bcs.Address).serialize(addrs).toBytes();
+  return bcs.vector(Address).serialize(addrs).toBytes();
 }
 
 // Encode arrays of structs
@@ -104,30 +110,34 @@ export function useDidManager({ packageId, moduleName, chain = 'sui:devnet' }: U
 
     // -------------------- Move calls --------------------
     create: (
-      //authMethods: AuthenticationMethod[],
       controllersDid: string[],
-      //endpoints: ServiceEndpoint[],
       cid: string | null,
       clockId: string
     ) =>
       callMoveFunction('create', [
-        //encodeStructArray(authMethods, AuthenticationMethodBCS),
         encodeVectorAddress(controllersDid),
-        //encodeStructArray(endpoints, ServiceEndpointBCS),
         encodeOptionString(cid),
-        tx.object(clockId),
+        clockId, // pass clockId as string; tx.object() is handled in formatArg
       ]),
 
     addController: (didId: string, newController: string, clockId: string) =>
-      callMoveFunction('add_controller', [tx.object(didId), tx.pure.address(newController), tx.object(clockId)]),
+      callMoveFunction('add_controller', [
+        didId,
+        Address.serialize(newController).toBytes(),
+        clockId,
+      ]),
 
     updateCid: (didId: string, newCid: string, clockId: string) =>
-      callMoveFunction('update_cid', [tx.object(didId), encodeOptionString(newCid), tx.object(clockId)]),
+      callMoveFunction('update_cid', [
+        didId,
+        encodeOptionString(newCid),
+        clockId,
+      ]),
 
     revoke: (didId: string, clockId: string) =>
-      callMoveFunction('revoke', [tx.object(didId), tx.object(clockId)]),
+      callMoveFunction('revoke', [didId, clockId]),
 
     reactivate: (didId: string, clockId: string) =>
-      callMoveFunction('reactivate', [tx.object(didId), tx.object(clockId)]),
+      callMoveFunction('reactivate', [didId, clockId]),
   };
 }
