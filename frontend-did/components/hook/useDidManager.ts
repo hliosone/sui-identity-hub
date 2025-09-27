@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Transaction } from '@mysten/sui/transactions';
-
+import { useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 interface UseDidManagerProps {
   packageId: string;
   moduleName: string;
@@ -25,7 +25,7 @@ export function useDidManager({ packageId, moduleName, chain = 'sui:devnet' }: U
     });
 
     return new Promise((resolve, reject) => {
-	 // https://sdk.mystenlabs.com/typescript/sui-client#signandexecutetransaction
+	 // https://sdk.mystenlabs.com/dapp-kit/wallet-hooks/useSignAndExecuteTransaction
       signAndExecuteTransaction(
         { transaction: tx, chain },
         {
