@@ -10,16 +10,23 @@
   "dependencies": {
     "@dynamic-labs/sdk-react-core": "^4.33.0",
     "@dynamic-labs/sui": "^4.33.0",
+    "@mysten/sui": "^1.38.0",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-progress": "^1.1.7",
+    "@radix-ui/react-select": "^2.2.6",
+    "@radix-ui/react-separator": "^1.1.7",
     "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-tabs": "^1.1.13",
+    "@tusky-io/ts-sdk": "^0.36.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "ts-sdk": "link:@tusky-io/ts-sdk"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
