@@ -76,7 +76,7 @@ export default function DynamicWalletProviderWrapper({ children }: Readonly<{ ch
                 walletConnectors: [SuiWalletConnectors],
                 cssOverrides: sidebarCss,
                 events: {
-                    onAuthSuccess: (args) => {
+                    onAuthSuccess: () => {
                         window.location.href = "/dashboard";
                     },
                     onLogout: () => {
