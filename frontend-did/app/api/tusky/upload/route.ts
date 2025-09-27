@@ -1,16 +1,23 @@
+// ✅ Force Node.js runtime so Buffer is available
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { Tusky } from "@tusky-io/ts-sdk";
 
-// Initialize Tusky client
-const tusky = new Tusky({ apiKey: process.env.TUSKY_API_KEY! });
-// Replace with your actual vaultId
-const VAULT_ID = process.env.TUSKY_VAULT_ID!;
+// ✅ Initialize Tusky client
+const tusky = new Tusky({
+    apiKey: process.env.TUSKY_API_KEY!,
+});
+
+// ✅ Your Tusky Vault ID
+const VAULT_ID = process.env.TUSKY_ID_VAULT!;
 
 export async function POST(request: Request) {
     try {
-        const body = await request.json();
-        const { fileContent, fileName } = body;
+        // ✅ Parse JSON body
+        const { fileContent, fileName } = await request.json();
 
+        // ✅ Validate input
         if (!fileContent || !fileName) {
         return NextResponse.json(
             { error: "fileContent and fileName are required" },
@@ -18,23 +25,24 @@ export async function POST(request: Request) {
         );
         }
 
-        // Convert file content to a Blob
-        const blob = new Blob([fileContent], { type: "text/plain" });
+        // ✅ Convert base64 string → Buffer → Blob
+        const buffer = Buffer.from(fileContent, "base64");
+        const blob = new Blob([buffer], { type: "text/plain" });
 
-        // Upload the file to Tusky
+        // ✅ Upload file to Tusky
         const uploadId = await tusky.file.upload(VAULT_ID, blob, {
         name: fileName,
         mimeType: "text/plain",
         });
 
-        // Retrieve file metadata
+        // ✅ Retrieve file metadata
         const fileMetadata = await tusky.file.get(uploadId);
 
-        // retrieve file ID
+        // ✅ Return metadata to client
         return NextResponse.json({
         fileId: fileMetadata.id,
         fileName: fileMetadata.name,
-        uploadId: uploadId,
+        uploadId,
         status: fileMetadata.status,
         size: fileMetadata.size,
         createdAt: fileMetadata.createdAt,

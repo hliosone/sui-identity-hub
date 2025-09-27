@@ -91,7 +91,7 @@ export function Header() {
 
                 <div className="pt-3 border-t mt-3 flex items-center gap-2 text-sm text-slate-600">
                 <User className="h-4 w-4" />
-                Guest
+                { user ? user.username : "Guest" }
                 </div>
                 <div className="pt-2">
                 <Button variant="outline" size="sm" className="w-full" onClick={() => handleLogOut()}>
