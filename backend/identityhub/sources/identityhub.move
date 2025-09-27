@@ -37,6 +37,7 @@ module identityhub::did {
 
     public struct DID has key {
         id: UID,
+        did: String,
         subject_address: address,
         authentication_methods: vector<AuthenticationMethod>,
         controllers: vector<address>, // NEED AT LEAST 1 Controller at creation
@@ -53,15 +54,15 @@ module identityhub::did {
     controllers_did: vector<address>, endpoints: vector<ServiceEndpoint>,  ipfs_cid: option::Option<String>, clock: &Clock) : DID {
 
         assert!(vector::length(&controllers_did) > 0, EDIDNoController);
-
-        // let mut didstring = string::utf8(b"did:sui:");
-        // let identifier : UID = object::new(ctx);
-        // // need to understand how to convert address to string
-        // let dididentifier: String = sui::address::to_string(identifier.id.bytes);
-        // string::append(&mut didstring, dididentifier);
+        let mut didstring = string::utf8(b"did:sui:");
+        let identifier : UID = object::new(ctx);
+        let address: address = sui::object::uid_to_address(&identifier);
+        let dididentifier: String = sui::address::to_string(address);
+        string::append(&mut didstring, dididentifier);
 
         let did_object = DID { 
-            id: object::new(ctx),
+            id: identifier,
+            did: dididentifier,
             subject_address: ctx.sender(),
             authentication_methods: auth_methods,
             controllers: controllers_did,
