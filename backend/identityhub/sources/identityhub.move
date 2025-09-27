@@ -11,7 +11,7 @@ module identityhub::did {
     use std::string;
     use std::vector; 
     use sui::clock::Clock;
-    use std::address;
+    use sui::address;
 
     //think about errors names come on x)
     const EDIDError: u64 = 0;
@@ -19,7 +19,6 @@ module identityhub::did {
     const EDIDAlreadyRevoked: u64 = 2;
     const EDIDAlreadyActive: u64 = 3;
     const EDIDNoController: u64 = 4;
-
 
 	const DAY_MS: u64 = 86_400_000;
 
@@ -38,7 +37,6 @@ module identityhub::did {
 
     public struct DID has key {
         id: UID,
-        did: String,
         subject_address: address,
         authentication_methods: vector<AuthenticationMethod>,
         controllers: vector<address>, // NEED AT LEAST 1 Controller at creation
@@ -56,15 +54,14 @@ module identityhub::did {
 
         assert!(vector::length(&controllers_did) > 0, EDIDNoController);
 
-        let mut didstring = string::utf8(b"did:sui:");
-        let identifier : UID = object::new(ctx);
-        // need to understand how to convert address to string
-        let dididentifier: String = std::address::to_string(identifier.id.bytes);
-        string::append(&mut didstring, dididentifier);
+        // let mut didstring = string::utf8(b"did:sui:");
+        // let identifier : UID = object::new(ctx);
+        // // need to understand how to convert address to string
+        // let dididentifier: String = sui::address::to_string(identifier.id.bytes);
+        // string::append(&mut didstring, dididentifier);
 
         let did_object = DID { 
-            id: identifier,
-            did: didstring,
+            id: object::new(ctx),
             subject_address: ctx.sender(),
             authentication_methods: auth_methods,
             controllers: controllers_did,
@@ -75,6 +72,7 @@ module identityhub::did {
             updated_at: clock.timestamp_ms(),
             revoked: false,
         };
+        
 
         did_object
     }
