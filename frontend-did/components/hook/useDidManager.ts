@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Transaction } from '@mysten/sui/transactions';
+import { Transaction, TransactionArgument } from '@mysten/sui/transactions';
 import { useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+
 interface UseDidManagerProps {
   packageId: string;
   moduleName: string;
@@ -9,7 +10,7 @@ interface UseDidManagerProps {
 
 // Helper to format arguments for Sui Move calls
 // https://sdk.mystenlabs.com/typescript/transaction-building/basics#pure-values
-function formatArg(tx: Transaction, arg: any) {
+function formatArg(tx: Transaction, arg: any): TransactionArgument | TransactionArgument[] {
   // If it's an object id (string of 66 chars, starts with '0x'), treat as object
   if (typeof arg === 'string' && arg.startsWith('0x') && arg.length >= 66) {
     return tx.object(arg);
