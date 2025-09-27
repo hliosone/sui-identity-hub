@@ -51,9 +51,10 @@ module identityhub::did {
     }
 
     public fun create(ctx: &mut TxContext, auth_methods: vector<AuthenticationMethod>, 
-    controllers_did: vector<address>, endpoints: vector<ServiceEndpoint>,  ipfs_cid: option::Option<String>, clock: &Clock) : DID {
+    controllers_did: vector<address>, endpoints: vector<ServiceEndpoint>,  _cid: option::Option<String>, clock: &Clock) : DID {
 
         assert!(vector::length(&controllers_did) > 0, EDIDNoController);
+
         let mut didstring = string::utf8(b"did:sui:");
         let identifier : UID = object::new(ctx);
         let address: address = sui::object::uid_to_address(&identifier);
@@ -67,14 +68,13 @@ module identityhub::did {
             authentication_methods: auth_methods,
             controllers: controllers_did,
             service_endpoints: endpoints,
-            cid: ipfs_cid,
+            cid: _cid,
             version: 1,
             created_at: clock.timestamp_ms(),
             updated_at: clock.timestamp_ms(),
             revoked: false,
         };
         
-
         did_object
     }
 
