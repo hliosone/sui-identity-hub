@@ -4,9 +4,11 @@ import React, { useState } from 'react';
 import { LayoutDashboard, Menu, X, Wallet, Award, FileText, TrendingUp, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { SuiLogoIconWhite } from './icons/SuiIconWhite';
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 
 export function Header() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { user, handleLogOut } = useDynamicContext();
 
     const navItems = [
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -47,7 +49,10 @@ export function Header() {
                 {/* Dummy user info (replace with real auth later) */}
                 <div className="flex items-center gap-2 ml-4 pl-4 border-l border-slate-200">
                 <User className="h-4 w-4" />
-                <span className="text-sm hidden xl:inline">Guest</span>
+                <span className="text-sm hidden xl:inline">{user ? user.username : "Guest"}</span>
+                <Button variant="outline" size="sm" className="ml-2" onClick={() => handleLogOut()}>
+                    Logout
+                </Button>
                 </div>
             </div>
 
@@ -87,6 +92,11 @@ export function Header() {
                 <div className="pt-3 border-t mt-3 flex items-center gap-2 text-sm text-slate-600">
                 <User className="h-4 w-4" />
                 Guest
+                </div>
+                <div className="pt-2">
+                <Button variant="outline" size="sm" className="w-full" onClick={() => handleLogOut()}>
+                    Logout
+                </Button>
                 </div>
             </div>
             </div>
