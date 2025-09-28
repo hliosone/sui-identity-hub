@@ -68,6 +68,11 @@ module identityhub::diddycredentials {
             vc_hash: _vc_hash,
         };
         
+        let creds = if (table::contains(&claim_pool.pool, _subject_did)) {
+            table::remove(&mut claim_pool.pool, _subject_did)
+        } else {
+            vector::empty<Credential>()
+        };
         let mut creds_mut = creds;
         vector::push_back(&mut creds_mut, credential);
         table::add(&mut claim_pool.pool, _subject_did, creds_mut);
@@ -82,23 +87,23 @@ module identityhub::diddycredentials {
     //         return new_vector;
     //     }
     // }
-    public fun get_credentials_by_subject(
-        claim_pool: &mut ClaimPool, 
-        subject_did: String, 
-        subject_address: address
-    ) {
-        if (table::contains(&claim_pool.pool, subject_did)) {
-            let mut creds: vector<Credential> = table::remove(&mut claim_pool.pool, subject_did);
-            let len = vector::length(&creds);
-            let mut i = 0;
-            while (i < len) {
-                // Always remove from the back for efficiency
-                let cred = vector::pop_back(&mut creds);
-                transfer::public_transfer(cred, subject_address);
-                i = i + 1;
-            }
+public fun get_credentials_by_subject(
+    claim_pool: &mut ClaimPool, 
+    subject_did: String, 
+    subject_address: address
+) {
+    if (table::contains(&claim_pool.pool, subject_did)) {
+        let mut creds: vector<Credential> = table::remove(&mut claim_pool.pool, subject_did);
+        let len = vector::length(&creds);
+        let mut i = 0;
+        while (i < len) {
+            // Always remove from the back for efficiency
+            let cred = vector::pop_back(&mut creds);
+            transfer::public_transfer(cred, subject_address);
+            i = i + 1;
         }
     }
+}
 
     public fun second_get_credentials_by_subject(claim_pool: &mut ClaimPool, subject_did: String): vector<Credential> {
         if (table::contains(&claim_pool.pool, subject_did)) {
