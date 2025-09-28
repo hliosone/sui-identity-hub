@@ -4,7 +4,8 @@ module identityhub::types {
     use std::string;
     use sui::clock::Clock;
     use sui::address;
-    use suins::suins_registration::SuinsRegistration;
+    //use suins::suins_registration::SuinsRegistration;
+    use sui::table::{Self, Table};
 
     const EDIDError: u64 = 0;
     const EDIDRevoked: u64 = 1;
@@ -14,7 +15,18 @@ module identityhub::types {
     const EDIDNoAController: u64 = 5;
     const ECredentialError: u64 = 6;
 
+    public struct Registry has key, store {
+        id: UID,
+        pool: Table<address,String>,
+    }
 
+    fun init(ctx: &mut TxContext) {
+        let did_registry = Registry {
+            id: object::new(ctx),
+            pool: table::new(ctx),
+        };
+        transfer::share_object(did_registry);
+    }
 
     public struct DID has key {
         id: UID,
@@ -31,7 +43,7 @@ module identityhub::types {
         credentials: vector<Credential>,
     }
 
-        public fun create(_controllers: vector<address>, _cid: String, clock: &Clock, ctx: &mut TxContext) {
+        public fun create(did_registry: &mut Registry, _controllers: vector<address>, _cid: String, clock: &Clock, ctx: &mut TxContext) {
 
         // assert!(vector::length(&controllers_did) > 0, EDIDNoController);
 
@@ -39,6 +51,10 @@ module identityhub::types {
             let identifier : UID = object::new(ctx);
             let dididentifier: String = sui::address::to_string(sui::object::uid_to_address(&identifier));
             string::append(&mut didstring, dididentifier);
+
+            let sender = ctx.sender();
+            assert!(!table::contains(&did_registry.pool, sender), EDIDAlreadyActive);
+            table::add(&mut did_registry.pool, sender, dididentifier);
 
             let did_object = DID { 
                 id: identifier,
@@ -53,9 +69,18 @@ module identityhub::types {
                 credentials: vector::empty<Credential>(),
                 //sui_nameservices: vector::empty<SuinsRegistration>(),
             };
-        
+
         transfer::share_object(did_object);
     }
+
+    public fun get_did_string(did_registry: &mut Registry, addr: address): String {
+        if (table::contains(&did_registry.pool, addr)) {
+            *table::borrow(&did_registry.pool, addr)
+        } else {
+            string::utf8(b"")
+        }
+    }
+
 
     // public fun add_sui_nameservice(did: &mut DID, new_service: SuinsRegistration, clock: &Clock) {
     //     assert!(!did.revoked, EDIDRevoked);
@@ -93,13 +118,15 @@ module identityhub::types {
     }
 
     public entry fun transfer_did(did: &mut DID, new_owner: address, clock: &Clock, ctx: &TxContext) {
-    // This is allowed for shared objects in entry functions
         assert_is_controller(did, ctx); 
+        // assert(!table::contains(&did_registry.pool, did.subject_address), EDIDAlreadyActive);
+        // table::remove(&mut claim_pool.pool, did.subject_address);
+        // let dididentifier: String = sui::address::to_string(sui::object::uid_to_address(did.id));
+        // table::add(&mut did_registry.pool, new_owner, dididentifier);
         did.subject_address = new_owner;
         did.version = did.version + 1;
         did.updated_at = clock.timestamp_ms();
     }
-
 
         // Helper function to check if the sender is a controller of a DID
     public entry fun assert_is_controller(did: &mut DID, ctx: &TxContext) {
@@ -164,7 +191,6 @@ module identityhub::types {
         schema: String,
         vc_cid: String,
         vc_hash: String,
-        sui_nameservices: vector<SuinsRegistration>,
     }
 
         public fun new_credential(
@@ -198,7 +224,6 @@ module identityhub::types {
             schema: _schema,
             vc_cid: _vc_cid,
             vc_hash: _vc_hash,
-            sui_nameservices: vector::empty<SuinsRegistration>(),
         }
     }
 
