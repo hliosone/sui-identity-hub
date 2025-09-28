@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use } from 'react';
+import React, { use, useEffect } from 'react';
 import { Download, X, WifiOff, Award, Zap, Lock, Database, UserCheck, Clock, TrendingUp, FileText } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -9,11 +9,14 @@ import { SuiLogoIcon } from './icons/SuiLogoIcon';
 import { SNSLogo } from './icons/SNSLogo';
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
 import { useSNSLookup } from './hook/useSNSLookup';
+import { useDidManager } from './hook/useDidManager';
+import { bcs, fromHex, toHex } from '@mysten/bcs';
 
 export function Dashboard() {
     // Mock hardcoded data
     const { user, primaryWallet } = useDynamicContext();
-    const { domain, isLoading, error, refetch } = useSNSLookup(primaryWallet?.address ?? null);
+    const { domain } = useSNSLookup(primaryWallet?.address ?? null);
+    const { getDidString } = useDidManager({ packageId: '0x564aa372a3a4bb465b0402a4db793b423f62d171cc8d8072b1ad01b381f106e0', moduleName: 'superdiddy' });
 
     const userDID = {
         id: `did:sui:${primaryWallet?.address}`,
@@ -60,9 +63,29 @@ export function Dashboard() {
 
     const isOnline = user ? true : false;
 
-    // Mock handlers
-    const handleInstallPWA = () => console.log('Installing PWA...');
-    const handleDismissInstallPrompt = () => console.log('Dismissing install prompt...');
+
+    const Address = bcs.bytes(32).transform({
+        // To change the input type, you need to provide a type definition for the input
+        input: (val: string) => fromHex(val),
+        output: (val) => toHex(val),
+    });
+
+    // useEffect(() => {
+    //     if (!user) {
+    //         // Redirect to login if not authenticated
+    //         window.location.href = '/';
+    //     }
+        
+    //     const clock = Address.serialize('0x6').toBytes();
+
+    //     const parsed = Address.parse(clock); // will return a hex string
+    //     // TODo : Check if user has a DID, if not prompt to create one
+
+    //     getDidString("0xbac1c0c4b32c8da951ec0505647af9d9267821d539c2b8998fd91ec7e8892152", "0x2c0ee221e135c1ad40944fcc91b5b4abe087cc9b9ffefeadce378fd601e7d9e2");
+    // }, [user]);
+
+
+
     const handlePageChange = (page: string) => console.log(`Navigating to ${page}...`);
 
     return (
