@@ -594,8 +594,8 @@ export function CredentialsIssuance() {
                   <div className="flex items-center space-x-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                       currentStep >= step.number 
-                        ? 'sui-gradient text-white border-blue-500' 
-                        : 'border-slate-300 text-slate-400'
+                        ? 'sui-gradient text-blue-600 border-blue-500' 
+                        : 'border-slate-300 text-black'
                     }`}>
                       {currentStep > step.number ? (
                         <CheckCircle className="h-5 w-5" />
@@ -691,7 +691,7 @@ export function CredentialsIssuance() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 sui-gradient rounded-lg flex items-center justify-center">
-                        <User className="h-5 w-5 text-white" />
+                        <User className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
                         <h2 className="text-xl font-semibold">Basic Information</h2>
@@ -881,7 +881,7 @@ export function CredentialsIssuance() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 sui-gradient rounded-lg flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-white" />
+                        <FileText className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
                         <h2 className="text-xl font-semibold">Credential Details</h2>
@@ -1244,7 +1244,7 @@ export function CredentialsIssuance() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 sui-gradient rounded-lg flex items-center justify-center">
-                        <Eye className="h-5 w-5 text-white" />
+                        <Eye className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
                         <h2 className="text-xl font-semibold">Review & Issue</h2>
