@@ -1,6 +1,8 @@
 # 🌊 Sui Identity Hub
 The Missing Digital Identity Layer for Web3
 
+## PITCH DECK ➡️ [Click Here](https://www.canva.com/design/DAG0QPp5v0s/r9WPeGuotu4td4PyqQ7Rww/edit?utm_content=DAG0QPp5v0s&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
+
 Sui Identity Hub is building the missing digital identity piece for the Sui platform.
 
 To date, Sui only works with accounts. Not even Sui Name Service, which boasts the slogan "own your identity", is technically anything more than an account alias no true identity. This is exactly the problem that we are solving by bringing Decentralized Identifiers (DIDs) natively to Sui, being fully W3C DID standard compliant.
