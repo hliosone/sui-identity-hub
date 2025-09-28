@@ -7,12 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { Progress } from './ui/progress';
 import { useRouter } from "next/navigation";
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { useTuskyUpload } from './hook/useTuskyUpload';
 
 export function CredentialsIssuance() {
   const [isIssuing, setIsIssuing] = useState(false);
@@ -47,7 +45,40 @@ export function CredentialsIssuance() {
 
   const { user, primaryWallet } = useDynamicContext();
 
+  const { uploadFile, loading: uploading, error: uploadError, data: uploadData } = useTuskyUpload();
+
   const router = useRouter();
+
+  useEffect(() => {
+    if (jsonInputMethod === 'file' && jsonInput) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setJsonInput(reader.result as string);
+      };
+      reader.readAsText(new Blob([jsonInput]));
+
+      setFormData(prev => ({ ...prev, additionalFields: jsonInput }));
+
+      setJsonInputMethod('textarea');
+
+      setUploadedFileName('pasted.json');
+
+      uploadFile(new Blob([jsonInput], { type: 'application/json' }) as File).catch(console.error);
+    } if (jsonInputMethod === 'textarea') {
+      setFormData(prev => ({ ...prev, additionalFields: jsonInput }));
+
+      setUploadedFileName('');
+
+      setJsonInputMethod('textarea');
+
+      setUploadedFileName('');
+
+      if (isValidJson(jsonInput)) {
+        uploadFile(new Blob([jsonInput], { type: 'application/json' }) as File).catch(console.error);
+      }
+
+    }
+  }, [jsonInputMethod, jsonInput]);
 
   const scopeCategories = [
     {
