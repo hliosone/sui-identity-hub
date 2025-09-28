@@ -13,10 +13,10 @@ This approach unlocks several key features:
 
 Authentic identity ownership: 
 
-- Users' DIDs are decoupled from accounts, so identity can be recovered even if a wallet is lost due to DID controllers.
+- Users' DIDs are  `decoupled` from accounts, so identity can be recovered even if a wallet is lost due to DID controllers.
   Credential binding: Verifiable Credentials (VCs) are directly bound to DID objects, enabling KYC, access control, and other trust models.
-- Service interoperability: Institutions are now able to deploy compliant on-chain services without needing users themselves to handle compliance. Institutions can issue and authenticate credentials against the DID method.
-- Asset recovery: Assets (ex:in a vault) can be linked to a DID rather than a single account. Even if the initial account is lost, the DID owner can recover from another wallet.
+- `Service interoperability`: Institutions are now able to deploy compliant on-chain services without needing users themselves to handle compliance. Institutions can issue and authenticate credentials against the DID method.
+- `Asset recovery`: Assets (ex:in a vault) can be linked to a DID rather than a single account. Even if the initial account is lost, the DID owner can recover from another wallet.
 
 In short, Sui Identity Hub bridges the gap between Sui accounts and actual identities. It is the foundation for compliant, interoperable, and user-owned digital identity making it possible for both individuals and institutions to build real-world use cases on-chain.
 
@@ -26,7 +26,7 @@ In short, Sui Identity Hub bridges the gap between Sui accounts and actual ident
 sui move build
 ```
 
-
+![sui-build](./assets/sui-build.png)
 
 ## Schema
 
@@ -34,7 +34,7 @@ sui move build
 
 ### UML
 
-![uml](.\assets\uml.png)
+![uml](./assets/uml.png)
 
 
 

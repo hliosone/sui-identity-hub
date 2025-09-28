@@ -6,18 +6,9 @@
 // https://docs.sui.io/concepts/sui-move-concepts/conventions
 
 module identityhub::diddycredentials {
-    use sui::package::{Self}; //use publisher later ?
-    use identityhub::types::{Self, DID, Credential};
-    use sui::table::{Self, Table};
+    use identityhub::types::{Self, DID};
     use std::string::String;
-    use std::string;
-    use std::vector; 
-    use sui::address;
     use sui::clock::Clock;
-
-
-    //think about errors names come on x)
-    const ECredentialError: u64 = 0;
 
     public fun issue_and_transfer_credential(
     issuer_did: &DID,
