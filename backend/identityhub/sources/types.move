@@ -4,6 +4,7 @@ module identityhub::types {
     use std::string;
     use sui::clock::Clock;
     use sui::address;
+    use suins::suins_registration::SuinsRegistration;
 
     const EDIDError: u64 = 0;
     const EDIDRevoked: u64 = 1;
@@ -11,6 +12,7 @@ module identityhub::types {
     const EDIDAlreadyActive: u64 = 3;
     const EDIDNoController: u64 = 4;
     const EDIDNoAController: u64 = 5;
+    const ECredentialError: u64 = 6;
 
 
 
@@ -49,10 +51,18 @@ module identityhub::types {
                 updated_at: clock.timestamp_ms(),
                 revoked: false,
                 credentials: vector::empty<Credential>(),
+                //sui_nameservices: vector::empty<SuinsRegistration>(),
             };
         
         transfer::share_object(did_object);
     }
+
+    // public fun add_sui_nameservice(did: &mut DID, new_service: SuinsRegistration, clock: &Clock) {
+    //     assert!(!did.revoked, EDIDRevoked);
+    //     vector::push_back(&mut did.sui_nameservices, new_service);
+    //     did.version = did.version + 1;
+    //     did.updated_at = clock.timestamp_ms();
+    // }
 
     public fun add_controller(did: &mut DID, new_controller: address, clock: &Clock) {
          assert!(!did.revoked, EDIDRevoked);
@@ -82,20 +92,19 @@ module identityhub::types {
         did.updated_at = clock.timestamp_ms();
     }
 
-     public fun transfer_did(did: &mut DID, new_owner: address, clock: &Clock, ctx: &TxContext) {
-        // Ensure the caller is a controller
-        assert_is_controller(did, ctx);
-
-        // Update the subject address
+    public entry fun transfer_did(did: &mut DID, new_owner: address, clock: &Clock, ctx: &TxContext) {
+    // This is allowed for shared objects in entry functions
+        assert_is_controller(did, ctx); 
         did.subject_address = new_owner;
-
-        // Update the timestamp
+        did.version = did.version + 1;
         did.updated_at = clock.timestamp_ms();
     }
 
+
         // Helper function to check if the sender is a controller of a DID
-    public fun assert_is_controller(did: &DID, ctx: &TxContext) {
+    public entry fun assert_is_controller(did: &mut DID, ctx: &TxContext) {
         let sender = ctx.sender();
+        if (did.subject_address != sender) {
         let mut is_controller = false;
         let len = vector::length(&did.controllers);
         let mut i = 0;
@@ -107,6 +116,7 @@ module identityhub::types {
             i = i + 1;
         };
         assert!(is_controller, EDIDNoAController);
+        }
     }
 
     /// Assert that the caller (TxContext sender) is the subject of the DID
@@ -115,59 +125,16 @@ module identityhub::types {
         assert!(sender == did.subject_address, 0); // Replace 0 with your error code, e.g., EDIDNotSubject
     }
 
-
-
-
-
-
-
-    // CREEEEEEEEEEEEEEEEEEEEEEEEDENTIAAAAAAAAAAAAAAAAAAAAAAAAAAAALS
-
-
-    public struct Credential has key, store {
-        id: UID,
-        issuer_did: String,
-        subject_did: String,
-        ctype: vector<String>,
-        //scope: Table<String,String>,
-        revoked: bool,
-        issued_at: u64,
-        expires_at: u64,
-        version: u64,
-        schema: String,
-        vc_cid: String,
-        vc_hash: String,
-    }
-
-        public fun new_credential(
-        _issuer_did: &DID,
-        _subject_did: String,
-        _subject_address: address,
-        _ctype: vector<String>,
-        _expires_at: u64,
-        _schema: String,
-        _vc_cid: String,
-        _vc_hash: String,
-        clock: &Clock,
-        ctx: &mut TxContext,
-    ) : Credential {
-        Credential {
-            id: object::new(ctx),
-            issuer_did: get_did(_issuer_did),
-            subject_did: _subject_did,
-            ctype: _ctype,
-            revoked: false,
-            issued_at: clock.timestamp_ms(),
-            expires_at: _expires_at,
-            version: 1,
-            schema: _schema,
-            vc_cid: _vc_cid,
-            vc_hash: _vc_hash,
-        }
-    }
-
     public fun get_did(did_obj: &DID): String {
         did_obj.did
+    }
+
+    public fun get_subject_address(did_obj: &DID): address {
+        did_obj.subject_address
+    }
+
+    public fun set_updated_at(did_obj: &mut DID, clock: &Clock) {
+        did_obj.updated_at = clock.timestamp_ms();
     }
 
     public fun get_revoked(did_obj: &DID): bool {
@@ -179,5 +146,62 @@ module identityhub::types {
         did_obj.version = did_obj.version + 1;
         did_obj.updated_at = clock.timestamp_ms();
     }
+
+    // CREEEEEEEEEEEEEEEEEEEEEEEEDENTIAAAAAAAAAAAAAAAAAAAAAAAAAAAALS
+
+
+    public struct Credential has key, store {
+        id: UID,
+        issuer_did: String,
+        subject_did: String,
+        ctype: vector<String>,
+        scopes: vector<String>,
+        scopes_values: vector<String>,
+        revoked: bool,
+        issued_at: u64,
+        expires_at: u64,
+        version: u64,
+        schema: String,
+        vc_cid: String,
+        vc_hash: String,
+        sui_nameservices: vector<SuinsRegistration>,
+    }
+
+        public fun new_credential(
+        _issuer_did: &DID,
+        _subject_did: String,
+        _subject_address: address,
+        _ctype: vector<String>,
+        _scopes: vector<String>,
+        _scopes_values: vector<String>,
+        _expires_at: u64,
+        _schema: String,
+        _vc_cid: String,
+        _vc_hash: String,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) : Credential {
+
+        assert!(_scopes.length() == _scopes_values.length(), ECredentialError);
+
+        Credential {
+            id: object::new(ctx),
+            issuer_did: get_did(_issuer_did),
+            subject_did: _subject_did,
+            ctype: _ctype,
+            scopes: _scopes,
+            scopes_values: _scopes_values,
+            revoked: false,
+            issued_at: clock.timestamp_ms(),
+            expires_at: _expires_at,
+            version: 1,
+            schema: _schema,
+            vc_cid: _vc_cid,
+            vc_hash: _vc_hash,
+            sui_nameservices: vector::empty<SuinsRegistration>(),
+        }
+    }
+
+
 
 }
