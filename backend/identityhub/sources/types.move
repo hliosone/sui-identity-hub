@@ -123,6 +123,7 @@ module identityhub::types {
         // table::remove(&mut claim_pool.pool, did.subject_address);
         // let dididentifier: String = sui::address::to_string(sui::object::uid_to_address(did.id));
         // table::add(&mut did_registry.pool, new_owner, dididentifier);
+
         did.subject_address = new_owner;
         did.version = did.version + 1;
         did.updated_at = clock.timestamp_ms();
@@ -227,6 +228,11 @@ module identityhub::types {
         }
     }
 
-
+    public entry fun add_credentials(did: &mut DID, cred : Credential, clock: &Clock) {
+        assert!(!did.revoked, EDIDRevoked);
+        vector::push_back(&mut did.credentials, cred);
+        did.version = did.version + 1;
+        did.updated_at = clock.timestamp_ms();
+    }
 
 }
