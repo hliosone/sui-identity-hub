@@ -24,6 +24,8 @@ module identityhub::diddycredentials {
     subject_did: String,
     subject_address: address,
     ctype: vector<String>,
+    scopes: vector<String>,
+    scopes_values: vector<String>,
     expires_at: u64,
     schema: String,
     vc_cid: String,
@@ -36,6 +38,8 @@ module identityhub::diddycredentials {
         subject_did,
         subject_address,
         ctype,
+        scopes,
+        scopes_values,
         expires_at,
         schema,
         vc_cid,
@@ -45,4 +49,5 @@ module identityhub::diddycredentials {
     );
     transfer::public_transfer(credential, subject_address);
 }
+
 }
