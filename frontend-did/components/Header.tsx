@@ -12,7 +12,7 @@ export function Header() {
 
     const navItems = [
         { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/manage', label: 'Passport', icon: Wallet },
+        { href: '/passport', label: 'Passport', icon: Wallet },
         { href: '/credentials', label: 'Credentials', icon: Award },
         { href: '/issue', label: 'Issuance', icon: FileText },
         { href: '/demo', label: 'Demo', icon: TrendingUp }

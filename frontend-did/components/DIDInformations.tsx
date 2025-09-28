@@ -5,10 +5,12 @@ import { Globe, Copy, Check, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
+import { useDIDResolve } from "./hook/useDIDResolve";
 
 export function DIDInformation() {
     const [copied, setCopied] = useState<string | null>(null);
     const { primaryWallet, user } = useDynamicContext();
+    const { data, loading, error } = useDIDResolve(primaryWallet?.address || "", { enabled: !!primaryWallet });
 
     // Sample data if no userDID is provided
     const defaultDID = {
@@ -20,7 +22,7 @@ export function DIDInformation() {
 
     const didData = primaryWallet?.address
         ? {
-            id: "did:sui:" + primaryWallet.address,
+            id: "did:sui:" + data?.subject_address || primaryWallet.address,
             publicKey: primaryWallet.address,
             created: Date.now() ? new Date().toISOString() : defaultDID.created,
             updated: Date.now() ? new Date().toISOString() : defaultDID.updated
