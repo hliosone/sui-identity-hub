@@ -50,6 +50,20 @@ sui move build
 
 This module defines Decentralized Identifiers (DIDs) and Verifiable Credentials (VCs) on Sui, with functions to create, manage, and control them.
 
+### Some example of our On-chains TXs
+
+- add_sui_nameservice (add SUI NS to DID Object) : https://suiscan.xyz/testnet/tx/3kk9yugTYYDzdCDBRNyCe7Mr5TyMCa1NsWuQrc6NP9gY
+
+- transfer_did (transfer DID ownership for recovery) : https://suiscan.xyz/testnet/tx/7gkHfSRRHGsUXyXE8MZAuXHHtpzSeCowR535Dinit4Yd
+
+- create (create DID object) : https://suiscan.xyz/testnet/tx/6eYYMxXCtAhNtqimBDQUD3Y5bTPFDFdynos6qQTDoUmg
+
+- issue_and_transfer_credential (issue VC and transfer to user) : https://suiscan.xyz/testnet/tx/GnKaawSXAMavsuY1D6CT1wf3KiFGtFkG6Y32Cm5iC7uu
+
+- add_credentials (claim VC to DID object) : https://suiscan.xyz/testnet/tx/EXPmLkNgQUtqHgrJknFRHHywaec62HgcfDAQgg6sevpH
+
+- get_did_string (On-chain DID Resolver) : https://suiscan.xyz/testnet/tx/868wsS9EJki9ubVokjiLHMnceTniM2bcCRthWANtuvLx
+
 #### Constants
 
 | Name                 | Type  | Description                                              |
