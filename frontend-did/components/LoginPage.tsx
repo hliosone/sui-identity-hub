@@ -36,7 +36,9 @@ export function LoginPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-                <DynamicWidget />
+                <div className="flex justify-center">
+                    <DynamicWidget />
+                </div>
 
                 <div className="text-center space-y-3">
                 <div className="space-y-2 text-sm">
