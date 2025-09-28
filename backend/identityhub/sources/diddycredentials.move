@@ -46,7 +46,6 @@ module identityhub::diddycredentials {
         vc_hash: String,
     }
 
-
     // change it later to get the didobject.did field but it says drop ability ?
     public fun create(claim_pool: &mut ClaimPool, _issuer_did: String, _subject_did: String, _subject_address: address, _ctype: vector<String>,
      _expires_at: u64, schema: String, _vc_cid: String,
@@ -69,16 +68,43 @@ module identityhub::diddycredentials {
             vc_hash: _vc_hash,
         };
         
-        let creds = if (table::contains(&claim_pool.pool, _subject_did)) {
-            table::remove(&mut claim_pool.pool, _subject_did)
-        } else {
-            vector::empty<Credential>()
-        };
         let mut creds_mut = creds;
         vector::push_back(&mut creds_mut, credential);
         table::add(&mut claim_pool.pool, _subject_did, creds_mut);
     }
+
+    // public fun get_credentials_by_subject(claim_pool: &mut ClaimPool, subject_did: String): vector<Credential> {
+    //     if (table::contains(&claim_pool.pool, subject_did)) {
+    //         let new_vector : vector<Credential> = table::remove(&mut claim_pool.pool, subject_did);
+    //         return new_vector;
+    //     } else {
+    //         let new_vector = vector::empty<Credential>();
+    //         return new_vector;
+    //     }
+    // }
+    public fun get_credentials_by_subject(
+        claim_pool: &mut ClaimPool, 
+        subject_did: String, 
+        subject_address: address
+    ) {
+        if (table::contains(&claim_pool.pool, subject_did)) {
+            let mut creds: vector<Credential> = table::remove(&mut claim_pool.pool, subject_did);
+            let len = vector::length(&creds);
+            let mut i = 0;
+            while (i < len) {
+                // Always remove from the back for efficiency
+                let cred = vector::pop_back(&mut creds);
+                transfer::public_transfer(cred, subject_address);
+                i = i + 1;
+            }
+        }
+    }
+
+    public fun second_get_credentials_by_subject(claim_pool: &mut ClaimPool, subject_did: String): vector<Credential> {
+        if (table::contains(&claim_pool.pool, subject_did)) {
+            table::remove(&mut claim_pool.pool, subject_did)
+        } else {
+            vector::empty<Credential>()
+        }
+    }
 }
-
-
-
