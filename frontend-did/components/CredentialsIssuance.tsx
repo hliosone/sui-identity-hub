@@ -7,12 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
-import { Progress } from './ui/progress';
 import { useRouter } from "next/navigation";
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core';
+import { useTuskyUpload } from './hook/useTuskyUpload';
 
 export function CredentialsIssuance() {
   const [isIssuing, setIsIssuing] = useState(false);
@@ -47,7 +45,38 @@ export function CredentialsIssuance() {
 
   const { user, primaryWallet } = useDynamicContext();
 
+  const { uploadFile, loading, error, data } = useTuskyUpload();
+
   const router = useRouter();
+
+  useEffect(() => {
+    if (jsonInputMethod === 'file' && jsonInput) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setJsonInput(reader.result as string);
+      };
+      reader.readAsText(new Blob([jsonInput]));
+
+      setFormData(prev => ({ ...prev, additionalFields: jsonInput }));
+
+      setJsonInputMethod('textarea');
+
+      setUploadedFileName('pasted.json');
+
+      uploadFile(new Blob([jsonInput], { type: 'application/json' }) as File, 'pasted.json').catch(console.error);
+    } if (jsonInputMethod === 'textarea') {
+      setFormData(prev => ({ ...prev, additionalFields: jsonInput }));
+
+      setUploadedFileName('');
+
+      setJsonInputMethod('textarea');
+
+      if (isValidJson(jsonInput)) {
+        uploadFile(new Blob([jsonInput], { type: 'application/json' }) as File, uploadedFileName).catch(console.error);
+      }
+
+    }
+  }, [jsonInputMethod, jsonInput]);
 
   const scopeCategories = [
     {
@@ -594,8 +623,8 @@ export function CredentialsIssuance() {
                   <div className="flex items-center space-x-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                       currentStep >= step.number 
-                        ? 'sui-gradient text-white border-blue-500' 
-                        : 'border-slate-300 text-slate-400'
+                        ? 'sui-gradient text-blue-600 border-blue-500' 
+                        : 'border-slate-300 text-black'
                     }`}>
                       {currentStep > step.number ? (
                         <CheckCircle className="h-5 w-5" />
@@ -691,7 +720,7 @@ export function CredentialsIssuance() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 sui-gradient rounded-lg flex items-center justify-center">
-                        <User className="h-5 w-5 text-white" />
+                        <User className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
                         <h2 className="text-xl font-semibold">Basic Information</h2>
@@ -881,7 +910,7 @@ export function CredentialsIssuance() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 sui-gradient rounded-lg flex items-center justify-center">
-                        <FileText className="h-5 w-5 text-white" />
+                        <FileText className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
                         <h2 className="text-xl font-semibold">Credential Details</h2>
@@ -1244,7 +1273,7 @@ export function CredentialsIssuance() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-3 mb-6">
                       <div className="w-8 h-8 sui-gradient rounded-lg flex items-center justify-center">
-                        <Eye className="h-5 w-5 text-white" />
+                        <Eye className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
                         <h2 className="text-xl font-semibold">Review & Issue</h2>

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
             {
                 filter: {
                     Package:
-                        "0xb1b098c5e089937cab5fac6b6c1b7f65836373c764682e21cf03b7c30129cc0a",
+                        process.env.DID_PACKAGE_OBJECT_ID || "<DID_PACKAGE_OBJECT_ID>",
                 },
                 options: { showType: true },
             },
