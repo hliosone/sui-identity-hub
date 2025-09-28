@@ -1,15 +1,10 @@
 module identityhub::types {
-    use sui::package::{Self}; 
     use std::string::String;
     use std::string;
     use sui::clock::Clock;
-    use sui::address;
-    //use suins::suins_registration::SuinsRegistration;
     use sui::table::{Self, Table};
 
-    const EDIDError: u64 = 0;
     const EDIDRevoked: u64 = 1;
-    const EDIDAlreadyRevoked: u64 = 2;
     const EDIDAlreadyActive: u64 = 3;
     const EDIDNoController: u64 = 4;
     const EDIDNoAController: u64 = 5;
@@ -32,9 +27,7 @@ module identityhub::types {
         id: UID,
         did: String,
         subject_address: address,
-        // authentication_methods: vector<AuthenticationMethod>,
         controllers: vector<address>, // NEED AT LEAST 1 Controller at creation
-        // service_endpoints: vector<ServiceEndpoint>, 
         cid: String, // function done to update
         version: u64,
         created_at: u64,
@@ -43,10 +36,7 @@ module identityhub::types {
         credentials: vector<Credential>,
     }
 
-        public fun create(did_registry: &mut Registry, _controllers: vector<address>, _cid: String, clock: &Clock, ctx: &mut TxContext) {
-
-        // assert!(vector::length(&controllers_did) > 0, EDIDNoController);
-
+    public fun create(did_registry: &mut Registry, _controllers: vector<address>, _cid: String, clock: &Clock, ctx: &mut TxContext) {
             let mut didstring = string::utf8(b"did:sui:");
             let identifier : UID = object::new(ctx);
             let dididentifier: String = sui::address::to_string(sui::object::uid_to_address(&identifier));
@@ -81,14 +71,6 @@ module identityhub::types {
         }
     }
 
-
-    // public fun add_sui_nameservice(did: &mut DID, new_service: SuinsRegistration, clock: &Clock) {
-    //     assert!(!did.revoked, EDIDRevoked);
-    //     vector::push_back(&mut did.sui_nameservices, new_service);
-    //     did.version = did.version + 1;
-    //     did.updated_at = clock.timestamp_ms();
-    // }
-
     public fun add_controller(did: &mut DID, new_controller: address, clock: &Clock) {
          assert!(!did.revoked, EDIDRevoked);
          vector::push_back(&mut did.controllers, new_controller);
@@ -107,7 +89,7 @@ module identityhub::types {
             if (vector::borrow(&did.controllers, i) == &controller_to_remove) {
                 vector::swap_remove(&mut did.controllers, i);
                 found = true;
-                break;
+                break
             };
             i = i + 1;
         };
@@ -117,19 +99,24 @@ module identityhub::types {
         did.updated_at = clock.timestamp_ms();
     }
 
-    public entry fun transfer_did(did: &mut DID, new_owner: address, clock: &Clock, ctx: &TxContext) {
+    #[allow(lint(public_entry))]
+    public entry fun transfer_did(did: &mut DID, new_owner: address, did_registry: &mut Registry, clock: &Clock, ctx: &TxContext) {
         assert_is_controller(did, ctx); 
-        // assert(!table::contains(&did_registry.pool, did.subject_address), EDIDAlreadyActive);
-        // table::remove(&mut claim_pool.pool, did.subject_address);
-        // let dididentifier: String = sui::address::to_string(sui::object::uid_to_address(did.id));
-        // table::add(&mut did_registry.pool, new_owner, dididentifier);
+        let dididentifier: String = sui::address::to_string(sui::object::uid_to_address(&did.id));
+        let oldSubjet = did.subject_address;
+        
+        // update table
+        table::add(&mut did_registry.pool, new_owner, dididentifier);
+        let _old_addr = did_registry.pool.remove(oldSubjet);
 
+        // update did
         did.subject_address = new_owner;
         did.version = did.version + 1;
         did.updated_at = clock.timestamp_ms();
     }
 
-        // Helper function to check if the sender is a controller of a DID
+    // Helper function to check if the sender is a controller of a DID
+    #[allow(lint(public_entry))]
     public entry fun assert_is_controller(did: &mut DID, ctx: &TxContext) {
         let sender = ctx.sender();
         if (did.subject_address != sender) {
@@ -139,7 +126,7 @@ module identityhub::types {
         while (i < len) {
             if (*vector::borrow(&did.controllers, i) == sender) {
                 is_controller = true;
-                break;
+                break
             };
             i = i + 1;
         };
@@ -174,6 +161,15 @@ module identityhub::types {
         did_obj.version = did_obj.version + 1;
         did_obj.updated_at = clock.timestamp_ms();
     }
+
+    
+    // public fun add_sui_nameservice(did: &mut DID, new_service: SuinsRegistration, clock: &Clock) {
+    //     assert!(!did.revoked, EDIDRevoked);
+    //     vector::push_back(&mut did.sui_nameservices, new_service);
+    //     did.version = did.version + 1;
+    //     did.updated_at = clock.timestamp_ms();
+    // }
+
 
     // CREEEEEEEEEEEEEEEEEEEEEEEEDENTIAAAAAAAAAAAAAAAAAAAAAAAAAAAALS
 
@@ -227,7 +223,8 @@ module identityhub::types {
             vc_hash: _vc_hash,
         }
     }
-
+    
+    #[allow(lint(public_entry))]
     public entry fun add_credentials(did: &mut DID, cred : Credential, clock: &Clock) {
         assert!(!did.revoked, EDIDRevoked);
         vector::push_back(&mut did.credentials, cred);
