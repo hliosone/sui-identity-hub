@@ -45,7 +45,7 @@ export function CredentialsIssuance() {
 
   const { user, primaryWallet } = useDynamicContext();
 
-  const { uploadFile, loading: uploading, error: uploadError, data: uploadData } = useTuskyUpload();
+  const { uploadFile, loading, error, data } = useTuskyUpload();
 
   const router = useRouter();
 
@@ -63,7 +63,7 @@ export function CredentialsIssuance() {
 
       setUploadedFileName('pasted.json');
 
-      uploadFile(new Blob([jsonInput], { type: 'application/json' }) as File).catch(console.error);
+      uploadFile(new Blob([jsonInput], { type: 'application/json' }) as File, 'pasted.json').catch(console.error);
     } if (jsonInputMethod === 'textarea') {
       setFormData(prev => ({ ...prev, additionalFields: jsonInput }));
 
@@ -71,10 +71,8 @@ export function CredentialsIssuance() {
 
       setJsonInputMethod('textarea');
 
-      setUploadedFileName('');
-
       if (isValidJson(jsonInput)) {
-        uploadFile(new Blob([jsonInput], { type: 'application/json' }) as File).catch(console.error);
+        uploadFile(new Blob([jsonInput], { type: 'application/json' }) as File, uploadedFileName).catch(console.error);
       }
 
     }

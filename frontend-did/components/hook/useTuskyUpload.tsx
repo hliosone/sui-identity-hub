@@ -23,7 +23,7 @@ export function useTuskyUpload() {
     const [error, setError] = useState<string | null>(null);
     const [data, setData] = useState<UploadResult | null>(null);
 
-    const uploadFile = useCallback(async (file: File) => {
+    const uploadFile = useCallback(async (file: File, fileName: string) => {
         setLoading(true);
         setError(null);
         setData(null);
@@ -38,12 +38,12 @@ export function useTuskyUpload() {
         });
 
         // ✅ Call Next.js API route
-        const res = await fetch("/api/upload", {
+        const res = await fetch("/api/tusky/upload", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
             fileContent: base64,
-            fileName: file.name,
+            fileName: fileName,
             }),
         });
 
