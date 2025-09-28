@@ -4,6 +4,7 @@ module identityhub::types {
     use std::string;
     use sui::clock::Clock;
     use sui::address;
+    use sui::table::{Self, Table};
 
     const EDIDError: u64 = 0;
     const EDIDRevoked: u64 = 1;
@@ -12,9 +13,22 @@ module identityhub::types {
     const EDIDNoController: u64 = 4;
     const EDIDNoAController: u64 = 5;
 
+  // Singleton table holder
+    public struct AddressToDidTable has key {
+        id: UID,
+        table: Table<address, UID>,
+    }
+
+    // Initialize the singleton table (call only once)
+    fun init_onc(ctx: &mut TxContext): AddressToDidTable {
+        AddressToDidTable {
+            id: object::new(ctx),
+            table: table::new<address, UID>(ctx),
+        }
+    }
 
 
-    public struct DID has key {
+    public struct DID has key, store {
         id: UID,
         did: String,
         subject_address: address,
@@ -29,7 +43,7 @@ module identityhub::types {
         credentials: vector<Credential>,
     }
 
-        public fun create(_controllers: vector<address>, _cid: String, clock: &Clock, ctx: &mut TxContext) {
+    public fun create(_controllers: vector<address>, _cid: String, addressToDidTable: &AddressToDidTable, clock: &Clock, ctx: &mut TxContext) {
 
         // assert!(vector::length(&controllers_did) > 0, EDIDNoController);
 
@@ -82,18 +96,30 @@ module identityhub::types {
         did.updated_at = clock.timestamp_ms();
     }
 
-     public fun transfer_did(did: &mut DID, new_owner: address, clock: &Clock, ctx: &TxContext) {
+     public fun transfer_did(did: &mut DID, new_owner: address, addressToDidTable: &mut AddressToDidTable,clock: &Clock, ctx: &TxContext) {
         // Ensure the caller is a controller
         assert_is_controller(did, ctx);
 
+        let oldSubjet = did.subject_address;
         // Update the subject address
         did.subject_address = new_owner;
 
         // Update the timestamp
         did.updated_at = clock.timestamp_ms();
+
+
+        // Add DID UID to new owner's entry in the table
+        addressToDidTable.table.add(new_owner, did.id);
+
+        // Remove old owner's entry and bind the removed UID
+        let _old_uid = addressToDidTable.table.remove(oldSubjet);
     }
 
-        // Helper function to check if the sender is a controller of a DID
+    public fun getDidFromAddress(subject:address, addressToDidTable: &AddressToDidTable):&UID {
+        addressToDidTable.table.borrow(subject)
+    }
+
+    // Helper function to check if the sender is a controller of a DID
     public fun assert_is_controller(did: &DID, ctx: &TxContext) {
         let sender = ctx.sender();
         let mut is_controller = false;
@@ -114,12 +140,6 @@ module identityhub::types {
         let sender = ctx.sender();
         assert!(sender == did.subject_address, 0); // Replace 0 with your error code, e.g., EDIDNotSubject
     }
-
-
-
-
-
-
 
     // CREEEEEEEEEEEEEEEEEEEEEEEEDENTIAAAAAAAAAAAAAAAAAAAAAAAAAAAALS
 
