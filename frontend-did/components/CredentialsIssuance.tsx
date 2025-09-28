@@ -16,7 +16,6 @@ export function CredentialsIssuance() {
   const [isIssuing, setIsIssuing] = useState(false);
   const [issued, setIssued] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [showPreview, setShowPreview] = useState(false);
   const [isBackButtonCollapsed, setIsBackButtonCollapsed] = useState(true);
   const [formData, setFormData] = useState({
     subject: '',
